@@ -96,6 +96,9 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RC433MhzSender.cs" />
+    <Compile Include="Rc433MhzSwitch.cs" />
+    <Compile Include="SprinklerController.cs" />
     <Compile Include="StartupTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
