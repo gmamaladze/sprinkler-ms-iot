@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Devkoes.Restup.WebServer.Attributes;
@@ -10,28 +9,35 @@ namespace SprinklerWebApi
     [RestController(InstanceCreationType.Singleton)]
     public sealed class SprinklerController
     {
-        private CancellationTokenSource _ctx;
-
-        [UriFormat("/{pinId}/on/{seconds}")]
-        public IGetResponse GetOn(int pinId, int seconds)
+        [UriFormat("/{pinId}/on")]
+        public IGetResponse GetOn(int pinId)
         {
-            _ctx?.Cancel();
-            _ctx = new CancellationTokenSource();
-
-            Task.Factory.StartNew(() =>
-            {
-                var device = new Rc433MhzSwitch(pinId, "101110A");
-                device.On();
-                var t = Task.Delay(TimeSpan.FromSeconds(seconds), _ctx.Token);
-                t.Wait();
-                if (t.IsCanceled) return;
-                device.Off();
-            });
-
-            return new GetResponse(
-                GetResponse.ResponseStatus.OK,
-                DateTime.UtcNow.AddSeconds(seconds));
+            var cmd = new Command(42, 0, true, false);
+            Signal.Send(pinId, cmd.Data);
+            return new GetResponse(GetResponse.ResponseStatus.OK);
         }
+
+        [UriFormat("/{pinId}/off")]
+        public IGetResponse GetOff(int pinId)
+        {
+            var cmd = new Command(42, 0, false, false);
+            Signal.Send(pinId, cmd.Data);
+            return new GetResponse(GetResponse.ResponseStatus.OK);
+        }
+
+
+        [UriFormat("/{pinId}/learn")]
+        public IGetResponse GetLearn(int pinId)
+        {
+            var cmd = new Command(42, 0, true, false);
+            for (var i = 0; i < 100; i++)
+            {
+                Signal.Send(pinId, cmd.Data);
+            }
+
+            return new GetResponse(GetResponse.ResponseStatus.OK);
+        }
+
 
         [UriFormat("/{pinId}/moisture")]
         public IGetResponse GetMoisture(int pinId)
