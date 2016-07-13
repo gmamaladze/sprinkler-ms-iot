@@ -1,56 +1,62 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Storage;
 using SQLite.Net;
 using SQLite.Net.Platform.WinRT;
 
 namespace SprinklerWebApi
 {
-    
-    public sealed class TelegramsDb
+    public sealed class TelegramsDb : IDisposable
     {
+        private readonly SQLiteConnection _conn;
+
+        public TelegramsDb()
+        {
+            _conn = GetConnection();
+        }
+
+        public void Dispose()
+        {
+            _conn.Close();
+            _conn.Dispose();
+        }
+
         private static SQLiteConnection GetConnection()
         {
             var path = Path.Combine(ApplicationData.Current.LocalFolder.Path, "telegrams.db");
             var conn = new SQLiteConnection(new SQLitePlatformWinRT(), path);
-            conn.CreateTable<Telegram>();
+            conn.CreateTable<TelegramDo>();
             return conn;
         }
 
-        public static Telegram Get(int id)
+        public TelegramDo Get(int id)
         {
-            using (var conn = GetConnection())
-                return conn
-                    .Table<Telegram>()
-                    .FirstOrDefault(t => t.Id == id);
+            return _conn
+                .Table<TelegramDo>()
+                .FirstOrDefault(t => t.Id == id);
         }
 
-        public static IEnumerable<Telegram> GetAll()
+        public IEnumerable<TelegramDo> GetAll()
         {
-            using (var conn = GetConnection())
-                return conn
-                    .Table<Telegram>();
+            return _conn
+                .Table<TelegramDo>();
         }
 
-        public static int Delete(int id)
+        public int Delete(int id)
         {
-            using (var conn = GetConnection())
-                return conn.Delete<int>(id);
+            return _conn.Delete<int>(id);
         }
 
-        public static int Clear()
+        public int Clear()
         {
-            using (var conn = GetConnection())
-                return conn.DeleteAll<Telegram>();
+            return _conn.DeleteAll<TelegramDo>();
         }
 
-        public static int Add(Telegram telegram)
+        public int Add(TelegramDo telegramDo)
         {
-            using (var conn = GetConnection())
-                return conn.Insert(telegram);
+            return _conn.Insert(telegramDo);
         }
     }
 }

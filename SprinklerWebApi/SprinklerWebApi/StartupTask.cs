@@ -15,13 +15,19 @@ namespace SprinklerWebApi
 
         public void Run(IBackgroundTaskInstance taskInstance)
         {
-
+            var db = new TelegramsDb();
             Task.Factory.StartNew(() =>
             {
                 while (true)
                 {
-                    var telegram = TelegramRecorder.Read(18, new TimeSpan(0, 0, 0, 0, Timeout.Infinite), TimeSpan.FromMilliseconds(100), CancellationToken.None);
-                    TelegramsDb.Add(telegram);
+                    const int inputPinNumber = 18;
+                    var infinite = new TimeSpan(0, 0, 0, 0, Timeout.Infinite);
+                    var telegram = TelegramRecorder.Read(
+                        inputPinNumber, 
+                        infinite,
+                        TimeSpan.FromMilliseconds(100), 
+                        CancellationToken.None);
+                    db.Add(DoConvert.ToDo(telegram));
                 }
             });
 
@@ -30,7 +36,7 @@ namespace SprinklerWebApi
             restRouteHandler.RegisterController<SprinklerController>();
 
             var telegramHandler = new RestRouteHandler();
-            telegramHandler.RegisterController<TelegramsController>();
+            telegramHandler.RegisterController<TelegramsController>(db);
 
             var httpServer = new HttpServer(1390);
             httpServer.RegisterRoute("sprinkler", restRouteHandler);

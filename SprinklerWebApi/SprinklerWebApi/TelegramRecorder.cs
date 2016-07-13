@@ -15,7 +15,6 @@ namespace SprinklerWebApi
             var controller = GpioController.GetDefault();
             using (var pin = controller.OpenPin(pinNumber, GpioSharingMode.SharedReadOnly))
             {
-                //pin.SetDriveMode(GpioPinDriveMode.Input);
                 pin.WaitOne(GpioPinEdge.RisingEdge, timeout);
                 var signal = new Queue<long>();
                 var stopwatch = new Stopwatch();
@@ -24,19 +23,23 @@ namespace SprinklerWebApi
                 while (true)
                 {
                     var current = pin.Read();
-                    if (stopwatch.Elapsed> silence) break;
-                    if (token.IsCancellationRequested) break;
-                    if (previous==current) continue;
-                    previous = current;
-                    signal.Enqueue(stopwatch.ElapsedTicks);
+                    if (previous == current)
+                    {
+                        if (stopwatch.Elapsed > silence) break;
+                        if (token.IsCancellationRequested) break;
+                        continue;
+                    }
+                    var ticks = stopwatch.ElapsedTicks;
                     stopwatch.Restart();
+                    previous = current;
+                    signal.Enqueue(ticks);
                 }
 
                 return new Telegram
                 {
                     ReceivedAt = DateTimeOffset.UtcNow,
-                    TicksPerSecond = (int)TimeSpan.TicksPerSecond,
-                    SignalTicks = string.Join(",", signal.Select(ticks=>ticks.ToString(CultureInfo.InvariantCulture)))
+                    TicksPerSecond = Convert.ToInt32(TimeSpan.TicksPerSecond),
+                    Ticks = signal.Select(Convert.ToUInt32).ToArray()
                 };
             };
         }

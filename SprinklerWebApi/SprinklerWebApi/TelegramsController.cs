@@ -7,34 +7,42 @@ namespace SprinklerWebApi
     [RestController(InstanceCreationType.Singleton)]
     public sealed class TelegramsController
     {
+        private readonly TelegramsDb _db;
+
+        public TelegramsController(TelegramsDb db)
+        {
+            _db = db;
+        }
+
         [UriFormat("/{id}")]
         public IGetResponse Get(int id)
         {
-            var telegram = TelegramsDb.Get(id);
+            var telegram = _db.Get(id);
             return telegram==null 
                 ? new GetResponse(GetResponse.ResponseStatus.NotFound) 
                 : new GetResponse(GetResponse.ResponseStatus.OK, telegram);
         }
 
-        [UriFormat("/all/")]
-        public IGetResponse Get()
+        [UriFormat("/all")]
+        public IGetResponse GetAll()
         {
-            var telegrams = TelegramsDb.GetAll();
+            var telegrams = _db.GetAll();
             return new GetResponse(GetResponse.ResponseStatus.OK, telegrams);
         }
 
         [UriFormat("/{id}")]
         public IDeleteResponse Delete(int id)
         {
-            var deleted = TelegramsDb.Delete(id);
+            var deleted = _db.Delete(id);
             return new DeleteResponse(deleted>0 ? DeleteResponse.ResponseStatus.OK : DeleteResponse.ResponseStatus.NotFound);
         }
 
-        [UriFormat("/clear/")]
-        public IGetResponse Clear()
+        [UriFormat("/clear")]
+        public IGetResponse GetClear()
         {
-            var deleted = TelegramsDb.Clear();
-            return new GetResponse(GetResponse.ResponseStatus.OK, deleted);
+            var telegrams = _db.GetAll();
+            _db.Clear();
+            return new GetResponse(GetResponse.ResponseStatus.OK, telegrams);
         }
     }
 }

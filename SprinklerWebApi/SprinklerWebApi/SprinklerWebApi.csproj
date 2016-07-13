@@ -97,9 +97,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command.cs" />
+    <Compile Include="DoConvert.cs" />
     <Compile Include="PinEvent.cs" />
     <Compile Include="PinEventExtensions.cs" />
     <Compile Include="Telegram.cs" />
+    <Compile Include="TelegramDo.cs" />
     <Compile Include="TelegramRecorder.cs" />
     <Compile Include="TelegramsController.cs" />
     <Compile Include="TelegramsDb.cs" />
